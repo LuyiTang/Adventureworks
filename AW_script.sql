@@ -80,16 +80,19 @@ CREATE TABLE Product(
     ModifiedDate varchar(100) NOT NULL
     );
 Alter Table Product ADD Primary KEY (ProductID);
+
 -- -----------------------Insert data -------------------
 LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/AW/Product.txt'
 INTO TABLE Product
 FIELDS TERMINATED BY '\t' 
 LINES TERMINATED BY '\n'; 
+
 -- -----------------Replace space by NULL ---------------
 UPDATE Product SET ProductSubcategoryID=nullif(ProductSubcategoryID, '');
 -- -----------------Change data type ---------------
 Alter table Product modify ProductSubcategoryID int null;
 Alter table Product modify ModifiedDate datetime;
+
 -- -----------------Add the foreign key ---------------
 Alter table Product ADD CONSTRAINT FK_Product_ProductSubcategory
 FOREIGN KEY (ProductSubcategoryID)     
@@ -114,19 +117,27 @@ CREATE TABLE SalesOrderDetail(
     UnitPriceDiscount Decimal(10,3)NOT NULL,
     ModifiedDate varchar(25) NOT NULL
     );
+Alter Table SalesOrderDetail ADD Primary KEY (SalesOrderID,SalesOrderDetailID);
 
 -- -----------------------Insert data -------------------
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/SalesOrderDetail.txt'
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/AW/SalesOrderDetail.txt'
 INTO TABLE SalesOrderDetail
 FIELDS TERMINATED BY '\t' 
 LINES TERMINATED BY '\n'; 
 
 -----------------------Add new columns -------------------
 
-Alter Table SalesOrderDetail ADD LineTotal Decimal(10,3);
-Alter table SalesOrderDetail DROP LineTotal;
+Alter Table SalesOrderDetail ADD LineTotal Decimal(12,6);
+-- Alter table SalesOrderDetail DROP LineTotal;
 UPDATE SalesOrderDetail SET LineTotal= UnitPrice * (1.0 -UnitPriceDiscount) * OrderQty;
 
+--------------------Add Foreign keys --------------------
+
+Alter Table SalesOrderDetail ADD CONSTRAINT FK_SalesOrderDetail_Product
+FOREIGN KEY (ProductID)     
+    REFERENCES Product (ProductID)     
+    ON DELETE CASCADE    
+    ON UPDATE CASCADE;
 
 ------------------------------------------------------
 --------------- Table SalesOrderDetail ---------------
@@ -134,13 +145,10 @@ UPDATE SalesOrderDetail SET LineTotal= UnitPrice * (1.0 -UnitPriceDiscount) * Or
 
 DROP TABLE IF EXISTS SalesOrderHeader;
 CREATE TABLE SalesOrderHeader(
-    SalesOrderID int NOT NULL,
-    SalesOrderDetailID int NOT NULL,
-    CarrierTrackingNumber varchar(25) NULL, 
-    OrderQty smallint NOT NULL,
-    ProductID int NOT NULL,
-    SpecialOfferID int NOT NULL,
-    UnitPrice Decimal(10,3) NOT NULL,
-    UnitPriceDiscount Decimal(10,3)NOT NULL,
-    ModifiedDate varchar(25) NOT NULL
+    SalesOrderID int not null Primary KEY,
+    OrderDate datetime,
+    DueDate datetime,
+    ShipDate datetime,
+    OnlineOrder Boolean,
+    SalePersonID 
     );
