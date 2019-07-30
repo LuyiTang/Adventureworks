@@ -2,36 +2,6 @@ DROP DATABASE IF EXISTS AdventureWorks;
 CREATE DATABASE AdventureWorks CHARACTER SET utf8mb4;
 USE AdventureWorks;
 
-DROP TABLE IF EXISTS SalesOrderDetail;
-CREATE TABLE SalesOrderDetail(
-    SalesOrderID int NOT NULL,
-    SalesOrderDetailID int NOT NULL,
-    CarrierTrackingNumber varchar(25) NULL, 
-    OrderQty smallint NOT NULL,
-    ProductID int NOT NULL,
-    SpecialOfferID int NOT NULL,
-    UnitPrice Decimal(10,3) NOT NULL,
-    UnitPriceDiscount Decimal(10,3)NOT NULL,
-    ModifiedDate varchar(25) NOT NULL);
-
-
-Alter Table SalesOrderDetail ADD LineTotal Decimal(10,3);
-Alter table SalesOrderDetail DROP LineTotal;
-UPDATE SalesOrderDetail SET LineTotal= UnitPrice * (1.0 -UnitPriceDiscount) * OrderQty;
-
-DROP TABLE IF EXISTS SalesOrderHeader;
-CREATE TABLE SalesOrderHeader(
-    SalesOrderID int NOT NULL,
-    SalesOrderDetailID int NOT NULL,
-    CarrierTrackingNumber varchar(25) NULL, 
-    OrderQty smallint NOT NULL,
-    ProductID int NOT NULL,
-    SpecialOfferID int NOT NULL,
-    UnitPrice Decimal(10,3) NOT NULL,
-    UnitPriceDiscount Decimal(10,3)NOT NULL,
-    ModifiedDate varchar(25) NOT NULL
-    );
-
 ------------------------------------------------------
 ----------------- Table StateProvince ----------------
 ------------------------------------------------------
@@ -60,6 +30,7 @@ CREATE TABLE Address(
     ModifiedDate varchar(100));
 Alter Table Address ADD Primary KEY (AddressID);
     
+
 -- -----------------Add the foreign key ---------------
 Alter table Address ADD CONSTRAINT FK_Address_StateProvince FOREIGN KEY (StateProvinceID)     
     REFERENCES StateProvince (StateProvinceID)     
@@ -78,6 +49,8 @@ CREATE TABLE ProductSubcategory(
     );
 Alter Table ProductSubcategory ADD Primary KEY (ProductSubcategoryID);
 
+
+
 ------------------------------------------------------
 --------------------- Table Product ------------------
 ------------------------------------------------------
@@ -92,11 +65,11 @@ CREATE TABLE Product(
     );
 Alter Table Product ADD Primary KEY (ProductID);
 
--- -----------------Replace space by NULL ---------------
-UPDATE Product SET ProductSubcategoryID=nullif(ProductSubcategoryID, '');
+
 -- -----------------Change data type ---------------
 Alter table Product modify ProductSubcategoryID int null;
 Alter table Product modify ModifiedDate datetime;
+
 -- -----------------Add the foreign key ---------------
 Alter table Product ADD CONSTRAINT FK_Product_ProductSubcategory
 FOREIGN KEY (ProductSubcategoryID)     
@@ -105,4 +78,68 @@ FOREIGN KEY (ProductSubcategoryID)
     ON UPDATE CASCADE;
 
 
+------------------------------------------------------
+--------------- Table SalesOrderDetail ---------------
+------------------------------------------------------
 
+DROP TABLE IF EXISTS SalesOrderDetail;
+CREATE TABLE SalesOrderDetail(
+    SalesOrderID int NOT NULL,
+    SalesOrderDetailID int NOT NULL,
+    CarrierTrackingNumber varchar(25) NULL, 
+    OrderQty smallint NOT NULL,
+    ProductID int NOT NULL,
+    SpecialOfferID int NOT NULL,
+    UnitPrice Decimal(10,3) NOT NULL,
+    UnitPriceDiscount Decimal(10,3)NOT NULL,
+    ModifiedDate varchar(25) NOT NULL
+    );
+Alter Table SalesOrderDetail ADD Primary KEY (SalesOrderID,SalesOrderDetailID);
+
+-----------------------Add new columns -------------------
+
+Alter Table SalesOrderDetail ADD LineTotal Decimal(12,6);
+-- Alter table SalesOrderDetail DROP LineTotal;
+UPDATE SalesOrderDetail SET LineTotal= UnitPrice * (1.0 -UnitPriceDiscount) * OrderQty;
+
+--------------------Add Foreign keys --------------------
+
+Alter Table SalesOrderDetail ADD CONSTRAINT FK_SalesOrderDetail_Product
+FOREIGN KEY (ProductID)     
+    REFERENCES Product (ProductID)     
+    ON DELETE CASCADE    
+    ON UPDATE CASCADE;
+
+------------------------------------------------------
+--------------- Table SalesOrderDetail ---------------
+------------------------------------------------------
+
+DROP TABLE IF EXISTS SalesOrderHeader;
+CREATE TABLE SalesOrderHeader(
+    SalesOrderID int not null Primary KEY,
+    OrderDate datetime,
+    DueDate datetime,
+    ShipDate datetime,
+    OnlineOrder Boolean,
+    CustomerID int,
+    SalePersonID varchar(25),
+    BilltoAddressID int,
+    ShiptoAddressID int,
+    TotalDue Decimal(12,6),
+    ModifiedDate datetime
+    );
+
+
+
+--------------------Add Foreign keys --------------------
+Alter Table SalesOrderHeader ADD CONSTRAINT FK_SalesOrderHeader_BilltoAddressID
+FOREIGN KEY (BilltoAddressID)     
+    REFERENCES Address (AddressID)     
+    ON DELETE CASCADE    
+    ON UPDATE CASCADE;
+
+Alter Table SalesOrderHeader ADD CONSTRAINT FK_SalesOrderHeader_ShiptoAddressID
+FOREIGN KEY (ShiptoAddressID)     
+    REFERENCES Address (AddressID)     
+    ON DELETE CASCADE    
+    ON UPDATE CASCADE;
